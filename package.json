@@ -1,0 +1,21 @@
+{
+    "name": "MMM-SimpleNotifyTrashDay",
+    "version": "1.0.0",
+    "description": "MagicMirror 2 module to notify trash day.",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sabo10o29/MMM-SimpleNotifyTrashDay"
+    },
+    "keywords": [
+        "magic mirror",
+        "smart mirror",
+        "Trash day",
+        "Garbage"
+    ],
+    "author": "sabo10o29",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/sabo10o29/MMM-SimpleNotifyTrashDay/issues"
+    },
+    "homepage": "https://github.com/sabo10o29/MMM-SimpleNotifyTrashDay#readme"
+}
