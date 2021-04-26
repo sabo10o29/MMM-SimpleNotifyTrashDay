@@ -83,6 +83,7 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		}
 
 		var numNotifyItem = 0;
+		// console.log("Condition: item=", trashItems.length,", notify=", notify);
 		for(var i = 0; i < trashItems.length; i++){
 			var item = trashItems[i];
 			for(var j = 0; j <= notify; j++){
@@ -122,10 +123,13 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		var targetWeeks = item.NOW;
 		for(var i = 0; i < targetWeeks.length; i++){
 			var week = targetWeeks[i];
-			if(week == Math.floor((m.date() - m.day() + 12) / 7)){
+			var tmpWeek = Math.ceil(moment().date() / 7 ) ;
+			// console.log("@@",week , "@@@", tmpWeek);
+			if(week == tmpWeek){
 				result = true;
 			}
 		}
+		// console.log("isTargetWeek",result);
 		return result;
 	},
 
@@ -139,6 +143,7 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 				result = true;
 			}
 		}
+		// console.log("isTargetDay",result);
 		return result;
 	},
 });
