@@ -82,32 +82,34 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 			title.style.textAlign = "right";
 		}
 
-		var numNotifyItem = 0;
-		// console.log("Condition: item=", trashItems.length,", notify=", notify);
+		const notifyItems = []
 		for(var i = 0; i < trashItems.length; i++){
 			var item = trashItems[i];
 			for(var j = 0; j <= notify; j++){
 				var m = moment().add(j, "d");
 				if(this.isTargetWeek(m, item) && this.isTargetDay(m, item)){
-					var infoItem = document.createElement("tr");
-					infoItem.className = "bright";
-					// Add time
-					var time = document.createElement("td");
-					time.className = "time";
-					// time.innerHTML = moment.unix(Number(item.lastupdate)).format(this.config.timeFormat);
-					time.innerHTML = m.format(this.config.timeFormat);
-					infoItem.appendChild(time);
-					//Add event content
-					var content = document.createElement("td");
-					content.innerHTML = item.LABEL;
-					infoItem.appendChild(content);
-					table.appendChild(infoItem);
-					numNotifyItem++;
+					notifyItems.push({moment: m, trashItem: item})
 				}
 			}
 		}
 
-		if(numNotifyItem==0){
+		notifyItems.sort((a, b) => a.moment.diff(b.moment)).forEach(element => {
+			var infoItem = document.createElement("tr");
+			infoItem.className = "bright";
+			// Add time
+			var time = document.createElement("td");
+			time.className = "time";
+			// time.innerHTML = moment.unix(Number(item.lastupdate)).format(this.config.timeFormat);
+			time.innerHTML = element.moment.format(this.config.timeFormat);
+			infoItem.appendChild(time);
+			//Add event content
+			var content = document.createElement("td");
+			content.innerHTML = element.trashItem.LABEL;
+			infoItem.appendChild(content);
+			table.appendChild(infoItem);
+		});
+
+		if(notifyItems.length==0){
 			console.log("There are no items to notify.");
 			return wrapper;
 		}
