@@ -2,6 +2,7 @@
 Notify trash day on your MagicMirror.
 
 ## Features
+You can set a specific day or bi-weekly garbage day for notification.
 
 ## Screenshot
 -`Sample screenshot 1`  
@@ -11,6 +12,9 @@ Notify trash day on your MagicMirror.
 ## UPDATE
 **1.0.0**
 - Simple viewer for notifying trash day.
+
+**1.0.1**
+- Bug fix.
 
 ## Installation
 ```javascript
@@ -27,20 +31,26 @@ npm install
     //Positions of *_bar and *_third are not support.
     position: "top_left",
     config: {
+        notify: 7,
         trashDay:[
             {
+                //e.g. Notification of every Monday and Thursday burnable trash days.
                 //Day of the week
                 //'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'
-                DOW: ["mon", "fri"],
+                DOW: ["mon","thu"],
                 //Number of week in each month
                 //If you want to notify every week, please set all number.
-                //1, 2, 3, 4
-                NOW: [2,4],
-                //
-                LABEL: "Bottle",
+                NOW: [1,2,3,4,5],
+                LABEL: "可燃ゴミ",
             },
-		],
-    }
+            {
+                //e.g. Notification of trash days on the first and third Tuesday of every month.
+                DOW: ["tue"],
+                NOW: [1,3],
+                LABEL: "ビン,缶,古紙",
+            },
+        ],
+	},
 },
 ```
 
