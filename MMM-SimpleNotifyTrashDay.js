@@ -117,15 +117,15 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		return wrapper;
 	},
 
-	//今週が該当の週かどうかを確認
+	//該当の週かどうかを確認
 	isTargetWeek: function(m, item) {
 		var result = false;
 		var targetWeeks = item.NOW;
+		var targetWeek = Math.ceil(m.date() / 7 ) ;
 		for(var i = 0; i < targetWeeks.length; i++){
 			var week = targetWeeks[i];
-			var tmpWeek = Math.ceil(moment().date() / 7 ) ;
 			// console.log("@@",week , "@@@", tmpWeek);
-			if(week == tmpWeek){
+			if(week == targetWeek){
 				result = true;
 			}
 		}
