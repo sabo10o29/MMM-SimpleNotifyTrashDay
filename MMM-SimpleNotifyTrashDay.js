@@ -17,22 +17,6 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		title: "Trash day"
 	},
 
-	// config: {
-	//     trashDay:[
-	//         {
-	//             //Day of the week
-	//             //'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'
-	//             DOW: ["mon"],
-	//             //Number of week in each month
-	//             //If you want to notify every week, please set all number.
-	//             //1, 2, 3, 4
-	//             NOW: [2,4],
-	//             //
-	//             LABEL: "Bottle",
-	//         },
-	// 	],
-	// }
-
 	// Define required scripts.
 	getScripts: function() {
 		return ["moment.js"];
@@ -82,32 +66,34 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 			title.style.textAlign = "right";
 		}
 
-		var numNotifyItem = 0;
-		// console.log("Condition: item=", trashItems.length,", notify=", notify);
+		const notifyItems = []
 		for(var i = 0; i < trashItems.length; i++){
 			var item = trashItems[i];
 			for(var j = 0; j <= notify; j++){
 				var m = moment().add(j, "d");
 				if(this.isTargetWeek(m, item) && this.isTargetDay(m, item)){
-					var infoItem = document.createElement("tr");
-					infoItem.className = "bright";
-					// Add time
-					var time = document.createElement("td");
-					time.className = "time";
-					// time.innerHTML = moment.unix(Number(item.lastupdate)).format(this.config.timeFormat);
-					time.innerHTML = m.format(this.config.timeFormat);
-					infoItem.appendChild(time);
-					//Add event content
-					var content = document.createElement("td");
-					content.innerHTML = item.LABEL;
-					infoItem.appendChild(content);
-					table.appendChild(infoItem);
-					numNotifyItem++;
+					notifyItems.push({moment: m, trashItem: item})
 				}
 			}
 		}
 
-		if(numNotifyItem==0){
+		notifyItems.sort((a, b) => a.moment.diff(b.moment)).forEach(i => {
+			var infoItem = document.createElement("tr");
+			infoItem.className = "bright";
+			// Add time
+			var time = document.createElement("td");
+			time.className = "time";
+			// time.innerHTML = moment.unix(Number(item.lastupdate)).format(this.config.timeFormat);
+			time.innerHTML = i.moment.format(this.config.timeFormat);
+			infoItem.appendChild(time);
+			//Add event content
+			var content = document.createElement("td");
+			content.innerHTML = i.trashItem.LABEL;
+			infoItem.appendChild(content);
+			table.appendChild(infoItem);
+		});
+
+		if(notifyItems.length==0){
 			console.log("There are no items to notify.");
 			return wrapper;
 		}
@@ -117,34 +103,30 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		return wrapper;
 	},
 
-	//今週が該当の週かどうかを確認
+	//該当の週かどうかを確認
 	isTargetWeek: function(m, item) {
-		var result = false;
 		var targetWeeks = item.NOW;
+		var currentWeek = Math.ceil(m.date() / 7 ) ;
 		for(var i = 0; i < targetWeeks.length; i++){
-			var week = targetWeeks[i];
-			var tmpWeek = Math.ceil(moment().date() / 7 ) ;
-			// console.log("@@",week , "@@@", tmpWeek);
-			if(week == tmpWeek){
-				result = true;
+			var targetWeek = targetWeeks[i];
+			if(currentWeek == targetWeek){
+				return true;
 			}
 		}
-		// console.log("isTargetWeek",result);
-		return result;
+		return false;
 	},
 
 	//該当日かどうかを確認
 	isTargetDay: function(m, item){
-		var result = false;
 		var targetDays = item.DOW;
+		const currentDay = m.day();
 		for(var i = 0; i < targetDays.length; i++){
-			var d = DAYS[targetDays[i]];
-			if(m.day()==d){
-				result = true;
+			var targetDay = DAYS[targetDays[i]];
+			if(currentDay == targetDay){
+				return true;
 			}
 		}
-		// console.log("isTargetDay",result);
-		return result;
+		return false;
 	},
 });
 
