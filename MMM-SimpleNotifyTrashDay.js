@@ -17,22 +17,6 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 		title: "Trash day"
 	},
 
-	// config: {
-	//     trashDay:[
-	//         {
-	//             //Day of the week
-	//             //'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'
-	//             DOW: ["mon"],
-	//             //Number of week in each month
-	//             //If you want to notify every week, please set all number.
-	//             //1, 2, 3, 4
-	//             NOW: [2,4],
-	//             //
-	//             LABEL: "Bottle",
-	//         },
-	// 	],
-	// }
-
 	// Define required scripts.
 	getScripts: function() {
 		return ["moment.js"];
@@ -93,18 +77,18 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 			}
 		}
 
-		notifyItems.sort((a, b) => a.moment.diff(b.moment)).forEach(element => {
+		notifyItems.sort((a, b) => a.moment.diff(b.moment)).forEach(i => {
 			var infoItem = document.createElement("tr");
 			infoItem.className = "bright";
 			// Add time
 			var time = document.createElement("td");
 			time.className = "time";
 			// time.innerHTML = moment.unix(Number(item.lastupdate)).format(this.config.timeFormat);
-			time.innerHTML = element.moment.format(this.config.timeFormat);
+			time.innerHTML = i.moment.format(this.config.timeFormat);
 			infoItem.appendChild(time);
 			//Add event content
 			var content = document.createElement("td");
-			content.innerHTML = element.trashItem.LABEL;
+			content.innerHTML = i.trashItem.LABEL;
 			infoItem.appendChild(content);
 			table.appendChild(infoItem);
 		});
@@ -121,32 +105,28 @@ Module.register("MMM-SimpleNotifyTrashDay",{
 
 	//該当の週かどうかを確認
 	isTargetWeek: function(m, item) {
-		var result = false;
 		var targetWeeks = item.NOW;
-		var targetWeek = Math.ceil(m.date() / 7 ) ;
+		var currentWeek = Math.ceil(m.date() / 7 ) ;
 		for(var i = 0; i < targetWeeks.length; i++){
-			var week = targetWeeks[i];
-			// console.log("@@",week , "@@@", tmpWeek);
-			if(week == targetWeek){
-				result = true;
+			var targetWeek = targetWeeks[i];
+			if(currentWeek == targetWeek){
+				return true;
 			}
 		}
-		// console.log("isTargetWeek",result);
-		return result;
+		return false;
 	},
 
 	//該当日かどうかを確認
 	isTargetDay: function(m, item){
-		var result = false;
 		var targetDays = item.DOW;
+		const currentDay = m.day();
 		for(var i = 0; i < targetDays.length; i++){
-			var d = DAYS[targetDays[i]];
-			if(m.day()==d){
-				result = true;
+			var targetDay = DAYS[targetDays[i]];
+			if(currentDay == targetDay){
+				return true;
 			}
 		}
-		// console.log("isTargetDay",result);
-		return result;
+		return false;
 	},
 });
 
