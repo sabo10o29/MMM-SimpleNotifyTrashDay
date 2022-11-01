@@ -1,22 +1,32 @@
 # MMM-SimpleNotifyTrashDay
+
 Notify trash day on your MagicMirror.
 
 ## Features
+
 You can set a specific day or bi-weekly garbage day for notification.
 
 ## Screenshot
+
 -`Sample screenshot 1`  
 ![Screenshot](https://github.com/sabo10o29/MMM-SimpleNotifyTrashDay/blob/master/sc01.png)
 
-
 ## UPDATE
+
 **1.0.0**
+
 - Simple viewer for notifying trash day.
 
 **1.0.1**
+
 - Bug fix.
 
+**1.0.2**
+
+- Add feature: You can specify how long you want to display the notification for the day with expiredTime.
+
 ## Installation
+
 ```javascript
 cd ~/MagicMirror/modules/
 git clone https://github.com/sabo10o29/MMM-SimpleNotifyTrashDay.git
@@ -25,6 +35,7 @@ npm install
 ```
 
 ## Necessary Configuration
+
 ```javascript
 {
     module: "MMM-SimpleNotifyTrashDay",
@@ -55,8 +66,10 @@ npm install
 ```
 
 ## Optional Configuration
-| Option               | Description
-|--------------------- |-----------
-| `notify`     | How many days notify in advance?  <br><br>**Type:** `int` <br> **Default value:** `1`
-| `timeFormat`         | The time format of the delay info based on [moment.js](https://momentjs.com/docs/). <br><br>**Type:** `String` <br> **Default value:** `MM/DD`
-| `title`              | Title name <br><br>**Type:** `String` <br> **Default value:** `Trash day　　`
+
+| Option        | Description                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `notify`      | How many days notify in advance? <br><br>**Type:** `int` <br> **Default value:** `1`                                                           |
+| `timeFormat`  | The time format of the delay info based on [moment.js](https://momentjs.com/docs/). <br><br>**Type:** `String` <br> **Default value:** `MM/DD` |
+| `title`       | Title name <br><br>**Type:** `String` <br> **Default value:** `Trash day `                                                                     |
+| `expiredTime` | You can specify how long you want to display the notification for the day. <br><br>**Type:** `number` <br> **Default value:** null             |
