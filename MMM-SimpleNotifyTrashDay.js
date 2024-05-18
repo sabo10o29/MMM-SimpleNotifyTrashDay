@@ -12,10 +12,10 @@ Module.register("MMM-SimpleNotifyTrashDay", {
   defaults: {
     notify: 1,
     animationSpeed: 1000,
-    upadteInterval: 60 * 60 * 1000, //msec
+    updateInterval: 60 * 60 * 1000, //msec
     timeFormat: "MM/DD",
     title: "Trash day",
-    expiredTime: null,
+    expiredTime: null
   },
 
   // Define required scripts.
@@ -33,7 +33,7 @@ Module.register("MMM-SimpleNotifyTrashDay", {
 
     setInterval(function () {
       self.updateDom(this.config.animationSpeed);
-    }, self.config.upadteInterval);
+    }, self.config.updateInterval);
 
     self.updateDom(this.config.animationSpeed);
   },
@@ -42,7 +42,7 @@ Module.register("MMM-SimpleNotifyTrashDay", {
     // eslint-disable-next-line no-undef
     return (options = {
       url: this.config.api,
-      method: "GET",
+      method: "GET"
     });
   },
 
@@ -139,5 +139,5 @@ Module.register("MMM-SimpleNotifyTrashDay", {
       }
     }
     return false;
-  },
+  }
 });
