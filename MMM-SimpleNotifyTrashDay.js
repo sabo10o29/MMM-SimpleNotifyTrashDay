@@ -32,10 +32,10 @@ Module.register("MMM-SimpleNotifyTrashDay", {
     Log.info("Starting module: " + self.name);
 
     setInterval(function () {
-      self.updateDom(this.config.animationSpeed);
+      self.updateDom(self.config.animationSpeed);
     }, self.config.updateInterval);
 
-    self.updateDom(this.config.animationSpeed);
+    self.updateDom(self.config.animationSpeed);
   },
 
   getOptions() {
@@ -48,6 +48,7 @@ Module.register("MMM-SimpleNotifyTrashDay", {
 
   //設定から対象のゴミの日を計算して該当するゴミの日があったら表示する
   getDom: function () {
+    console.log("@@@@");
     const trashes = this.config.trashDay;
     const notify = this.config.notify;
     const now = new Date();
