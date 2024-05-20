@@ -110,7 +110,7 @@ Module.register("MMM-SimpleNotifyTrashDay", {
     }
 
     notifyItems
-      .sort((a, b) => a.trashDate <= b.trashDate)
+      .sort((a, b) => a.trashDate - b.trashDate)
       .forEach((i) => {
         var infoItem = document.createElement("tr");
         infoItem.className = "bright";
