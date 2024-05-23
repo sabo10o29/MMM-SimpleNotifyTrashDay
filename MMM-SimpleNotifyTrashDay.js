@@ -229,6 +229,7 @@ function getMonthsInRange(startDate, endDate) {
 function getEndDate(now, noticePeriodInAdvance) {
   const endDate = new Date(now);
   endDate.setDate(now.getDate() + noticePeriodInAdvance);
+  endDate.setHours(23, 59, 59, 999);
   return endDate;
 }
 
