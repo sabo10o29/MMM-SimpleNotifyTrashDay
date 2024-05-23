@@ -46,25 +46,34 @@ Module.register("MMM-SimpleNotifyTrashDay", {
     });
   },
 
-  //設定から対象のゴミの日を計算して該当するゴミの日があったら表示する
   getDom: function () {
-    console.log("@@@@");
+    const wrapper = document.createElement("div");
     const trashes = this.config.trashDay;
-    const notify = this.config.notify;
+    const noticePeriodInAdvance = this.config.notify;
     const now = new Date();
-    const endDate = getEndDate(now, notify);
-    const targetMonths = getMonthsInRange(now, endDate);
+    const endDate = getEndDate(now, noticePeriodInAdvance);
 
-    var wrapper = document.createElement("div");
     if (trashes.length === 0) {
       console.log("There are no configuration items.");
       return wrapper;
     }
 
-    var title = document.createElement("text");
+    const notificationItems = getNotificationItems(
+      trashes,
+      now,
+      endDate,
+      this.config.expiredTime
+    );
+
+    if (notificationItems.length === 0) {
+      console.log("There are no items to notify.");
+      return wrapper;
+    }
+
+    const title = document.createElement("text");
     title.innerHTML = this.config.title;
 
-    var table = document.createElement("table");
+    const table = document.createElement("table");
     table.className = "info";
     if (
       this.data.position === "top_right" ||
@@ -74,69 +83,92 @@ Module.register("MMM-SimpleNotifyTrashDay", {
       title.style.textAlign = "right";
     }
 
-    const notifyItems = [];
-    for (var trashIndex = 0; trashIndex < trashes.length; trashIndex++) {
-      const trashItem = trashes[trashIndex];
-      const targetDays = trashItem.DOW;
-      const targetWeeks = trashItem.NOW;
-
-      for (
-        var targetMonthIndex = 0;
-        targetMonthIndex < targetMonths.length;
-        targetMonthIndex++
-      ) {
-        for (
-          var targetWeekIndex = 0;
-          targetWeekIndex < targetWeeks.length;
-          targetWeekIndex++
-        ) {
-          for (
-            var targetDayIndex = 0;
-            targetDayIndex < targetDays.length;
-            targetDayIndex++
-          ) {
-            const targetDay = DAYS[targetDays[targetDayIndex]];
-            const trashDate = getDateFromDayOfMonth(
-              targetMonths[targetMonthIndex],
-              targetDay,
-              targetWeeks[targetWeekIndex],
-              this.config.expiredTime
-            );
-            if (isNotifyItem(trashDate, now, endDate)) {
-              notifyItems.push({ trashDate, trashItem });
-            }
-          }
-        }
-      }
-    }
-
-    notifyItems
-      .sort((a, b) => a.trashDate - b.trashDate)
-      .forEach((i) => {
-        var infoItem = document.createElement("tr");
-        infoItem.className = "bright";
-        // Add time
-        var time = document.createElement("td");
-        time.className = "time";
-        time.innerHTML = moment(i.trashDate).format(this.config.timeFormat);
-        infoItem.appendChild(time);
-        //Add event content
-        var content = document.createElement("td");
-        content.innerHTML = i.trashItem.LABEL;
-        infoItem.appendChild(content);
-        table.appendChild(infoItem);
-      });
-
-    if (notifyItems.length === 0) {
-      console.log("There are no items to notify.");
-      return wrapper;
-    }
+    addNotificationItemsToTable(
+      table,
+      notificationItems,
+      this.config.timeFormat
+    );
 
     wrapper.appendChild(title);
     wrapper.appendChild(table);
     return wrapper;
   }
 });
+
+/**
+ * Adds notify items to a table.
+ *
+ * @param {HTMLTableElement} table - The table element to add the notify items to.
+ * @param {Array} notifyItems - An array of notify items.
+ * @param {string} timeFormat - The format for displaying the time.
+ */
+function addNotificationItemsToTable(table, notifyItems, timeFormat) {
+  notifyItems
+    .sort((a, b) => a.trashDate - b.trashDate)
+    .forEach((i) => {
+      var infoItem = document.createElement("tr");
+      infoItem.className = "bright";
+      // Add time
+      var time = document.createElement("td");
+      time.className = "time";
+      time.innerHTML = moment(i.trashDate).format(timeFormat);
+      infoItem.appendChild(time);
+      //Add event content
+      var content = document.createElement("td");
+      content.innerHTML = i.trashItem.LABEL;
+      infoItem.appendChild(content);
+      table.appendChild(infoItem);
+    });
+}
+
+/**
+ * Retrieves the notify items based on the given trashes, current date, end date, and expired time.
+ *
+ * @param {Array} trashes - The array of trash items.
+ * @param {Date} now - The current date.
+ * @param {Date} endDate - The end date.
+ * @param {number} expiredTime - The expired time.
+ * @returns {Array} - The array of notify items.
+ */
+function getNotificationItems(trashes, now, endDate, expiredTime) {
+  const targetMonths = getMonthsInRange(now, endDate);
+  const notifyItems = [];
+  for (var trashIndex = 0; trashIndex < trashes.length; trashIndex++) {
+    const trashItem = trashes[trashIndex];
+    const targetDays = trashItem.DOW;
+    const targetWeeks = trashItem.NOW;
+
+    for (
+      var targetMonthIndex = 0;
+      targetMonthIndex < targetMonths.length;
+      targetMonthIndex++
+    ) {
+      for (
+        var targetWeekIndex = 0;
+        targetWeekIndex < targetWeeks.length;
+        targetWeekIndex++
+      ) {
+        for (
+          var targetDayIndex = 0;
+          targetDayIndex < targetDays.length;
+          targetDayIndex++
+        ) {
+          const targetDay = DAYS[targetDays[targetDayIndex]];
+          const trashDate = getDateFromDayOfMonth(
+            targetMonths[targetMonthIndex],
+            targetDay,
+            targetWeeks[targetWeekIndex],
+            expiredTime
+          );
+          if (isNotifyItem(trashDate, now, endDate)) {
+            notifyItems.push({ trashDate, trashItem });
+          }
+        }
+      }
+    }
+  }
+  return notifyItems;
+}
 
 /**
  * Get the date based on the day of the month, day of the week, week number, and expired time.
@@ -191,12 +223,12 @@ function getMonthsInRange(startDate, endDate) {
  * Calculates the end date by adding the specified number of days to the given date.
  *
  * @param {Date} now - The starting date.
- * @param {number} notify - The number of days to add to the starting date.
+ * @param {number} noticePeriodInAdvance - The number of days to add to the starting date.
  * @returns {Date} The end date after adding the specified number of days.
  */
-function getEndDate(now, notify) {
+function getEndDate(now, noticePeriodInAdvance) {
   const endDate = new Date(now);
-  endDate.setDate(now.getDate() + notify);
+  endDate.setDate(now.getDate() + noticePeriodInAdvance);
   return endDate;
 }
 
