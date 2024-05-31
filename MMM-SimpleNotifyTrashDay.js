@@ -177,7 +177,7 @@ function getNotificationItems(trashes, now, endDate, expiredTime) {
  * @param {number} dayOfWeek - The day of the week (0-6, where 0 is Sunday) to find in the month.
  * @param {number} weekNumber - The week number (1-5) to add to the found date.
  * @param {number} expiredTime - The hour of the day (0-23) to set for the resulting date.
- * @returns {Date} The calculated date.
+ * @returns {Date | null} The calculated date. Returns null if the date is not in the same month.
  */
 function getDateFromDayOfMonth(month, dayOfWeek, weekNumber, expiredTime) {
   const result = new Date(month);
@@ -194,7 +194,8 @@ function getDateFromDayOfMonth(month, dayOfWeek, weekNumber, expiredTime) {
   result.setDate(result.getDate() + (weekNumber - 1) * 7);
 
   result.setHours(expiredTime);
-  return result;
+
+  return result.getMonth() === month.getMonth() ? result : null;
 }
 
 /**
@@ -242,5 +243,5 @@ function getEndDate(now, noticePeriodInAdvance) {
  * @returns {boolean} - Returns true if the target date is within the range, otherwise false.
  */
 function isNotifyItem(target, now, endDate) {
-  return now <= target && target <= endDate;
+  return target !== null && now <= target && target <= endDate;
 }

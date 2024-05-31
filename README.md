@@ -25,6 +25,10 @@ You can set a specific day or bi-weekly garbage day for notification.
 
 - Add feature: You can specify how long you want to display the notification for the day with expiredTime.
 
+**1.0.3**
+
+- Bug fix.
+
 ## Installation
 
 ```javascript
