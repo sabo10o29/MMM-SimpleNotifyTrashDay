@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "None", "lib": ["ES2022", "DOM"],
+    "strict": true, "noEmitOnError": true, "removeComments": false,
+    "outFile": "MMM-SimpleNotifyTrashDay.js"
+  },
+  "files": ["src/MMM-SimpleNotifyTrashDay.ts"]
+}
