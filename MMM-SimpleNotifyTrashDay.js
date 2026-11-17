@@ -1,247 +1,137 @@
-/* Magic Mirror
- * Module: MMM-SimpleNotifyTrashDay
- *
- * By sabo10o29 https://github.com/sabo10o29
- * MIT Licensed.
- */
-
+"use strict";
 const DAYS = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-
-Module.register("MMM-SimpleNotifyTrashDay", {
-  // Module config defaults.
-  defaults: {
-    notify: 1,
-    animationSpeed: 1000,
-    updateInterval: 60 * 60 * 1000, //msec
-    timeFormat: "MM/DD",
-    title: "Trash day",
-    expiredTime: 0
-  },
-
-  // Define required scripts.
-  getScripts: function () {
-    return ["moment.js"];
-  },
-  // Define styles.
-  getStyles: function () {
-    return ["styles.css"];
-  },
-  // Define start sequence.
-  start: function () {
-    var self = this;
-    Log.info("Starting module: " + self.name);
-
-    setInterval(function () {
-      self.updateDom(self.config.animationSpeed);
-    }, self.config.updateInterval);
-
-    self.updateDom(self.config.animationSpeed);
-  },
-
-  getOptions() {
-    // eslint-disable-next-line no-undef
-    return (options = {
-      url: this.config.api,
-      method: "GET"
-    });
-  },
-
-  getDom: function () {
-    const wrapper = document.createElement("div");
-    const trashes = this.config.trashDay;
-    const noticePeriodInAdvance = this.config.notify;
-    const now = new Date();
-    const endDate = getEndDate(now, noticePeriodInAdvance);
-
-    if (trashes.length === 0) {
-      console.log("There are no configuration items.");
-      return wrapper;
+function validateConfig(config) {
+    if (!Number.isInteger(config.notify) || config.notify < 0 || config.notify > 3660)
+        throw new Error("notify must be an integer from 0 to 3660");
+    if (!Number.isFinite(config.expiredTime) || config.expiredTime < 0 || config.expiredTime > 24)
+        throw new Error("expiredTime must be a number from 0 to 24");
+    if (!Number.isInteger(config.updateInterval) || config.updateInterval < 1000 || config.updateInterval > 2147483647)
+        throw new Error("updateInterval must be an integer from 1000 to 2147483647");
+    if (!Number.isFinite(config.animationSpeed) || config.animationSpeed < 0)
+        throw new Error("animationSpeed must be a non-negative number");
+    if (typeof config.title !== "string" || typeof config.timeFormat !== "string")
+        throw new Error("title and timeFormat must be strings");
+    if (!Array.isArray(config.trashDay))
+        throw new Error("trashDay must be an array");
+    for (const item of config.trashDay) {
+        if (!item || typeof item.LABEL !== "string" || !Array.isArray(item.DOW) || !Array.isArray(item.NOW) ||
+            !item.DOW.every(day => typeof day === "string" && Object.hasOwn(DAYS, day)) ||
+            !item.NOW.every(week => Number.isInteger(week) && week >= 1 && week <= 5))
+            throw new Error("Each trashDay needs LABEL, DOW (sun to sat), and NOW (1 to 5)");
     }
-
-    const notificationItems = getNotificationItems(
-      trashes,
-      now,
-      endDate,
-      this.config.expiredTime
-    );
-
-    if (notificationItems.length === 0) {
-      console.log("There are no items to notify.");
-      return wrapper;
-    }
-
-    const title = document.createElement("text");
-    title.innerHTML = this.config.title;
-
-    const table = document.createElement("table");
-    table.className = "info";
-    if (
-      this.data.position === "top_right" ||
-      this.data.position === "bottom_right"
-    ) {
-      table.style.marginLeft = "auto";
-      title.style.textAlign = "right";
-    }
-
-    addNotificationItemsToTable(
-      table,
-      notificationItems,
-      this.config.timeFormat
-    );
-
-    wrapper.appendChild(title);
-    wrapper.appendChild(table);
-    return wrapper;
-  }
-});
-
-/**
- * Adds notify items to a table.
- *
- * @param {HTMLTableElement} table - The table element to add the notify items to.
- * @param {Array} notifyItems - An array of notify items.
- * @param {string} timeFormat - The format for displaying the time.
- */
-function addNotificationItemsToTable(table, notifyItems, timeFormat) {
-  notifyItems
-    .sort((a, b) => a.trashDate - b.trashDate)
-    .forEach((i) => {
-      var infoItem = document.createElement("tr");
-      infoItem.className = "bright";
-      // Add time
-      var time = document.createElement("td");
-      time.className = "time";
-      time.innerHTML = moment(i.trashDate).format(timeFormat);
-      infoItem.appendChild(time);
-      //Add event content
-      var content = document.createElement("td");
-      content.innerHTML = i.trashItem.LABEL;
-      infoItem.appendChild(content);
-      table.appendChild(infoItem);
-    });
 }
-
-/**
- * Retrieves the notify items based on the given trashes, current date, end date, and expired time.
- *
- * @param {Array} trashes - The array of trash items.
- * @param {Date} now - The current date.
- * @param {Date} endDate - The end date.
- * @param {number} expiredTime - The expired time.
- * @returns {Array} - The array of notify items.
- */
-function getNotificationItems(trashes, now, endDate, expiredTime) {
-  const targetMonths = getMonthsInRange(now, endDate);
-  const notifyItems = [];
-  for (var trashIndex = 0; trashIndex < trashes.length; trashIndex++) {
-    const trashItem = trashes[trashIndex];
-    const targetDays = trashItem.DOW;
-    const targetWeeks = trashItem.NOW;
-
-    for (
-      var targetMonthIndex = 0;
-      targetMonthIndex < targetMonths.length;
-      targetMonthIndex++
-    ) {
-      for (
-        var targetWeekIndex = 0;
-        targetWeekIndex < targetWeeks.length;
-        targetWeekIndex++
-      ) {
-        for (
-          var targetDayIndex = 0;
-          targetDayIndex < targetDays.length;
-          targetDayIndex++
-        ) {
-          const targetDay = DAYS[targetDays[targetDayIndex]];
-          const trashDate = getDateFromDayOfMonth(
-            targetMonths[targetMonthIndex],
-            targetDay,
-            targetWeeks[targetWeekIndex],
-            expiredTime
-          );
-          if (isNotifyItem(trashDate, now, endDate)) {
-            notifyItems.push({ trashDate, trashItem });
-          }
-        }
-      }
-    }
-  }
-  return notifyItems;
+function getEndDate(now, days) {
+    const end = new Date(now);
+    end.setDate(end.getDate() + days);
+    end.setHours(23, 59, 59, 999);
+    return end;
 }
-
-/**
- * Get the date based on the day of the month, day of the week, week number, and expired time.
- *
- * @param {number} month - The month (0-11) to calculate the date for.
- * @param {number} dayOfWeek - The day of the week (0-6, where 0 is Sunday) to find in the month.
- * @param {number} weekNumber - The week number (1-5) to add to the found date.
- * @param {number} expiredTime - The hour of the day (0-23) to set for the resulting date.
- * @returns {Date | null} The calculated date. Returns null if the date is not in the same month.
- */
-function getDateFromDayOfMonth(month, dayOfWeek, weekNumber, expiredTime) {
-  const result = new Date(month);
-
-  // Set the date to the first day of the current month
-  result.setDate(1);
-
-  // Find the first occurrence of the specified day of the week in the current month
-  while (result.getDay() !== dayOfWeek) {
-    result.setDate(result.getDate() + 1);
-  }
-
-  // Add the specified number of weeks to the found date
-  result.setDate(result.getDate() + (weekNumber - 1) * 7);
-
-  result.setHours(expiredTime);
-
-  return result.getMonth() === month.getMonth() ? result : null;
-}
-
-/**
- * Returns an array of months between the given start and end dates.
- *
- * @param {string|Date} startDate - The start date of the range.
- * @param {string|Date} endDate - The end date of the range.
- * @returns {Date[]} An array of Date objects representing the months in the range.
- */
 function getMonthsInRange(startDate, endDate) {
-  const start = new Date(startDate);
-  start.setDate(1);
-  const end = new Date(endDate);
-  end.setDate(1);
-  const months = [];
-
-  while (start <= end) {
-    months.push(new Date(start));
-    start.setMonth(start.getMonth() + 1);
-  }
-
-  return months;
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    const months = [];
+    while (start <= end) {
+        months.push(new Date(start));
+        start.setMonth(start.getMonth() + 1);
+    }
+    return months;
 }
-
-/**
- * Calculates the end date by adding the specified number of days to the given date.
- *
- * @param {Date} now - The starting date.
- * @param {number} noticePeriodInAdvance - The number of days to add to the starting date.
- * @returns {Date} The end date after adding the specified number of days.
- */
-function getEndDate(now, noticePeriodInAdvance) {
-  const endDate = new Date(now);
-  endDate.setDate(now.getDate() + noticePeriodInAdvance);
-  endDate.setHours(23, 59, 59, 999);
-  return endDate;
+function getDateFromDayOfMonth(month, dayOfWeek, weekNumber, expiredTime) {
+    if (!Number.isInteger(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6 ||
+        !Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 5 ||
+        !Number.isFinite(expiredTime) || expiredTime < 0 || expiredTime > 24)
+        return null;
+    const result = new Date(month.getFullYear(), month.getMonth(), 1);
+    result.setDate(1 + (dayOfWeek - result.getDay() + 7) % 7 + (weekNumber - 1) * 7);
+    if (result.getMonth() !== month.getMonth())
+        return null;
+    // The cutoff may be midnight on the following day (expiredTime: 24).
+    result.setHours(Math.floor(expiredTime), Math.round((expiredTime % 1) * 60), 0, 0);
+    return result;
 }
-
-/**
- * Checks if the target date falls within the specified range.
- *
- * @param {Date} target - The target date to check.
- * @param {Date} now - The current date.
- * @param {Date} endDate - The end date of the range.
- * @returns {boolean} - Returns true if the target date is within the range, otherwise false.
- */
-function isNotifyItem(target, now, endDate) {
-  return target !== null && now <= target && target <= endDate;
+function getNotificationItems(trashes, now, endDate, expiredTime) {
+    // Include yesterday's month for a last-day collection with a midnight cutoff.
+    const start = new Date(now);
+    start.setDate(start.getDate() - 1);
+    const items = [];
+    for (const trashItem of trashes) {
+        for (const month of getMonthsInRange(start, endDate)) {
+            for (const week of new Set(trashItem.NOW)) {
+                for (const day of new Set(trashItem.DOW)) {
+                    const cutoff = getDateFromDayOfMonth(month, DAYS[day], week, expiredTime);
+                    if (!cutoff || cutoff < now)
+                        continue;
+                    const date = new Date(month.getFullYear(), month.getMonth(), 1);
+                    date.setDate(1 + (DAYS[day] - date.getDay() + 7) % 7 + (week - 1) * 7);
+                    if (date <= endDate)
+                        items.push({ trashDate: date, trashItem });
+                }
+            }
+        }
+    }
+    return items.sort((a, b) => a.trashDate.getTime() - b.trashDate.getTime());
 }
+Module.register("MMM-SimpleNotifyTrashDay", {
+    defaults: {
+        trashDay: [], notify: 1, animationSpeed: 1000, updateInterval: 3600000,
+        timeFormat: "MM/DD", title: "Trash day", expiredTime: 0
+    },
+    getScripts() { return ["moment.js"]; },
+    getStyles() { return ["styles.css"]; },
+    start() {
+        validateConfig(this.config);
+        if (this.timer !== undefined)
+            clearInterval(this.timer);
+        this.timer = setInterval(() => this.updateDom(this.config.animationSpeed), this.config.updateInterval);
+    },
+    suspend() {
+        if (this.timer !== undefined)
+            clearInterval(this.timer);
+        this.timer = undefined;
+    },
+    resume() {
+        if (this.timer !== undefined)
+            clearInterval(this.timer);
+        this.timer = setInterval(() => this.updateDom(this.config.animationSpeed), this.config.updateInterval);
+        this.updateDom(this.config.animationSpeed);
+    },
+    getDom() {
+        const wrapper = document.createElement("div");
+        wrapper.className = "simple-notify-trash-day";
+        try {
+            validateConfig(this.config);
+        }
+        catch (error) {
+            wrapper.textContent = `MMM-SimpleNotifyTrashDay: ${error.message}`;
+            return wrapper;
+        }
+        const now = new Date();
+        const items = getNotificationItems(this.config.trashDay, now, getEndDate(now, this.config.notify), this.config.expiredTime);
+        if (!items.length)
+            return wrapper;
+        const title = document.createElement("div");
+        title.className = "trash-title";
+        title.textContent = this.config.title;
+        const table = document.createElement("table");
+        table.className = "info";
+        if (this.data.position.endsWith("right")) {
+            table.style.marginLeft = "auto";
+            title.style.textAlign = "right";
+        }
+        for (const item of items) {
+            const row = document.createElement("tr");
+            row.className = "bright";
+            const time = document.createElement("td");
+            time.className = "time";
+            time.textContent = moment(item.trashDate).format(this.config.timeFormat);
+            const label = document.createElement("td");
+            label.textContent = item.trashItem.LABEL;
+            row.appendChild(time);
+            row.appendChild(label);
+            table.appendChild(row);
+        }
+        wrapper.appendChild(title);
+        wrapper.appendChild(table);
+        return wrapper;
+    }
+});

@@ -1,18 +1,12 @@
-text {
-  border-bottom: solid 1px white;
-}
-
-table.info{
+.simple-notify-trash-day .trash-title { border-bottom: solid 1px white; }
+.simple-notify-trash-day table.info {
   font-size: 80%;
-  width:  30%;
   padding-top: 15px;
   vertical-align: middle;
   white-space: nowrap;
   text-align: left;
 }
-
-td.time {
-  width: 100px;
+.simple-notify-trash-day td.time {
   padding-right: 20px;
   padding-left: 10px;
   text-align: center;
